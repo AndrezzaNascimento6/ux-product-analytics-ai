@@ -69,7 +69,6 @@ export type Metrics={visits:number;appReach:number;appReachRate:number;interacti
 export function computeMetrics(events:UXEvent[]):Metrics{
  const sessions=new Map<string,{start:boolean;sections:Set<NovaSection>;interactions:number;duration:number|null;device:string;source:string}>();
  const daily=new Map<string,{started:number;app:number}>();
- const touched=new Set<string>();
  let motionChanges=0,transfers=0,benefits=0;
  for(const e of events){
   let s=sessions.get(e.session_id);
@@ -81,7 +80,6 @@ export function computeMetrics(events:UXEvent[]):Metrics{
   if(e.event_name==="motion_preference_changed")motionChanges++;
   if(e.event_name==="demo_transfer_completed")transfers++;
   if(e.event_name==="benefit_opened")benefits++;
-  touched.add(e.session_id);
  }
  const rows=[...sessions.values()].filter(s=>s.start);const visits=rows.length,appReach=rows.filter(s=>s.sections.has("app")).length;
  const ratio=(a:number,b:number)=>b?100*a/b:0;
