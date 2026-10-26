@@ -1,6 +1,6 @@
 import {useMemo,useState,type ReactNode} from "react";
 import {Activity,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
-import {computeMetrics,exportCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type UXEvent,type NovaSection} from "./analytics";
+import {computeMetrics,exportCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type UXEvent} from "./analytics";
 type Page="overview"|"journey"|"research";type Source="combined"|"observed";
 const pct=(v:number)=>v.toFixed(1)+"%";const count=(v:number)=>new Intl.NumberFormat("en-US").format(v);
 const timing=(v:number)=>v>0?Math.floor(v/60)+"m "+Math.round(v%60)+"s":"—";
