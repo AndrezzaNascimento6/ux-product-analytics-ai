@@ -17,7 +17,7 @@ test("product interaction changes observed KPIs",async({page})=>{
  await page.getByRole("button",{name:"Observed only"}).click();
  await expect(page.locator(".stat-card").first().locator(".stat-value")).toHaveText("1");
  await expect(page.locator(".stat-card").nth(1).locator(".stat-value")).toHaveText("100.0%");
- await expect(page.getByText("Validation friction")).toBeVisible();
+ await expect(page.getByText(/Validation errors appeared 1 time/i)).toBeVisible();
 });
 
 test("explicit abandonment is reflected in dashboard",async({page})=>{
