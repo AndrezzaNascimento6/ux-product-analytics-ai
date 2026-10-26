@@ -4,7 +4,7 @@ import {
   Activity,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,CheckCircle2,
   ChevronLeft,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,
   FileSpreadsheet,Globe2,LayoutDashboard,Lightbulb,LockKeyhole,Menu,
-  MousePointerClick,Play,Radio,RefreshCw,ShieldCheck,Sparkles,Target,
+  MousePointerClick,Radio,RefreshCw,ShieldCheck,Sparkles,Target,
   TrendingUp,Users,X,Zap,AlertCircle
 } from "lucide-react";
 import {
@@ -251,7 +251,6 @@ function Journey({track,observed,goOverview}:{
    }
    setStage("welcome");setError("");setName("");setEmail("");setGoal(null);
  };
- const steps=[{name:"01",label:"About you"},{name:"02",label:"Your goal"},{name:"03",label:"Review"}];
  const currentIndex=stage==="profile"?0:stage==="goals"?1:2;
  return <>
   <PageIntro eyebrow="EXPERIENCE LAB / INTERACTIVE PRODUCT" title="Every action" accent="leaves a signal."
