@@ -1,5 +1,5 @@
 
-import {useCallback,useEffect,useMemo,useState} from "react";
+import {useCallback,useEffect,useState} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 
 export type Step = "welcome"|"profile"|"goals"|"review"|"complete";
