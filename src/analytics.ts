@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 export type NovaSection="hero"|"experience"|"security"|"wealth"|"world"|"benefits"|"app"|"footer";
 export type EventName="visit_started"|"section_viewed"|"nav_clicked"|"modal_opened"|"modal_route_selected"|"benefit_opened"|"motion_preference_changed"|"app_tab_opened"|"demo_transfer_completed"|"demo_topup"|"card_status_changed"|"visit_ended";
