@@ -191,7 +191,7 @@ function Overview({metrics,allEvents,source,setSource,openJourney,openResearch,s
     <CardShell className="insight-summary">
       <div className="insight-top"><span><Lightbulb size={19}/></span><span>RESEARCH SIGNAL</span></div>
       <h2>Numbers tell you <em>where.</em><br/>Research tells you <em>why.</em></h2>
-      <p>{metrics.errorCount>0? "Validation errors appeared "+nfmt(metrics.errorCount)+" times. This is a friction signal worth investigating, not proof of the cause.":"No validation errors in the selected sample. Keep testing before concluding the experience is friction-free."}</p>
+      <p>{metrics.errorCount>0? "Validation errors appeared "+nfmt(metrics.errorCount)+(metrics.errorCount===1?" time":" times")+". This is a friction signal worth investigating, not proof of the cause.":"No validation errors in the selected sample. Keep testing before concluding the experience is friction-free."}</p>
       <button onClick={openResearch}>Explore hypotheses <ArrowUpRight size={18}/></button>
     </CardShell>
   </div>
