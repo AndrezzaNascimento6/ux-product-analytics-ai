@@ -89,10 +89,10 @@ begin
       when 'world' then 'Worldwide' when 'benefits' then 'Benefits' else 'Banking app' end,
     'count', (select count(distinct e.session_id) from public.nova_events e
       where e.event_name='section_viewed' and e.section=sec.section
-      and e.session_id in (select a.session_id from activity)),
+      and e.session_id in (select a.session_id from activity a)),
     'rate',round(100.0*(select count(distinct e.session_id) from public.nova_events e
       where e.event_name='section_viewed' and e.section=sec.section
-      and e.session_id in (select a.session_id from activity))/v_sessions,1)
+      and e.session_id in (select a.session_id from activity a))/v_sessions,1)
    ) order by sec.ord),'[]'::jsonb)
    from unnest(array['hero','experience','security','wealth','world','benefits','app'])
     with ordinality as sec(section,ord)
