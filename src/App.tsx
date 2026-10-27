@@ -42,8 +42,8 @@ function Trend({daily}:{daily:Metrics["daily"]}){
  <svg className="trend-chart" viewBox="0 0 650 258" role="img" aria-label={daily.map(d=>d.label+": "+pct(d.rate)+" reached the app").join("; ")}>
  <defs><linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#9dd9b6" stopOpacity=".36"/><stop offset="1" stopColor="#9dd9b6" stopOpacity="0"/></linearGradient></defs>
  {[0,25,50,75,100].map(t=><g key={t}><line x1="46" x2="606" y1={y(t)} y2={y(t)} stroke="#e4eae7" strokeDasharray="5 6"/><text x="34" y={y(t)+4} textAnchor="end" fill="#788a8c" fontSize="11">{t}%</text></g>)}
- <path d={line+" L "+x(6)+" 200 L "+x(0)+" 200 Z"} fill="url(#trend-fill)"/><path d={line} fill="none" stroke="#2d866f" strokeWidth="3.2" strokeLinecap="round"/>
- {daily.map((d,i)=><g key={d.date}><circle cx={x(i)} cy={y(d.rate)} r="4" fill="#2d866f" stroke="white" strokeWidth="2"/><text x={x(i)} y="233" textAnchor="middle" fill="#7c8d88" fontSize="12">{d.label}</text></g>)}</svg></div>;
+ <path className="trend-area" d={line+" L "+x(6)+" 200 L "+x(0)+" 200 Z"} fill="url(#trend-fill)"/><path className="trend-line" pathLength="1" d={line} fill="none" stroke="#2d866f" strokeWidth="3.2" strokeLinecap="round"/>
+ {daily.map((d,i)=><g key={d.date}><circle className="trend-point" style={{animationDelay:(.7+i*.075)+"s"}} cx={x(i)} cy={y(d.rate)} r="4" fill="#2d866f" stroke="white" strokeWidth="2"/><text x={x(i)} y="233" textAnchor="middle" fill="#7c8d88" fontSize="12">{d.label}</text></g>)}</svg></div>;
 }
 function Overview({metrics,observed,source,setSource,status,connectionIssue,openNova,openResearch}:{metrics:Metrics;observed:UXEvent[];source:Source;setSource:(s:Source)=>void;status:string;connectionIssue:string|null;openNova:()=>void;openResearch:()=>void}){
  const baseline=source==="combined";
