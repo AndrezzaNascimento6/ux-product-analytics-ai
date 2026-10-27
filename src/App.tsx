@@ -1,4 +1,4 @@
-import {useMemo,useState,type ReactNode} from "react";
+import {useEffect,useMemo,useState,type ReactNode} from "react";
 import {Activity,AlertCircle,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,RefreshCcw,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
 import {computeMetrics,exportAggregateCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type SummaryEvent} from "./analytics";
 type Page="overview"|"journey"|"research";type Source="combined"|"observed";
@@ -32,8 +32,34 @@ function AppNav({page,setPage,open,close}:{page:Page;setPage:(p:Page)=>void;open
 function Intro({label,title,accent,subtitle,action}:{label:string;title:string;accent:string;subtitle:string;action?:ReactNode}){
  return <div className="page-intro"><div><div className="eyebrow"><span className="eyebrow-line"/>{label}</div><h1>{title} <em>{accent}</em></h1><p>{subtitle}</p></div>{action&&<div className="page-intro-action">{action}</div>}</div>;
 }
+function AnimatedMetric({value}:{value:string}){
+ const [display,setDisplay]=useState(value);
+ useEffect(()=>{
+  const media=window.matchMedia("(prefers-reduced-motion: reduce)");
+  const match=/^([\\d,.]+)(%)?$/.exec(value);
+  if(media.matches||!match){setDisplay(value);return}
+  const target=Number(match[1].replaceAll(",",""));
+  if(!Number.isFinite(target)){setDisplay(value);return}
+  const percentage=Boolean(match[2]);
+  let raf=0,start=0,active=true;
+  const tick=(now:number)=>{
+   if(!active)return;
+   if(!start)start=now;
+   const progress=Math.min(1,(now-start)/1450),eased=1-Math.pow(1-progress,3.4);
+   const n=target*eased;
+   setDisplay(percentage?n.toFixed(1)+"%":Math.round(n).toLocaleString("en-US"));
+   if(progress<1)raf=requestAnimationFrame(tick);else setDisplay(value);
+  };
+  setDisplay(percentage?"0.0%":"0");
+  raf=requestAnimationFrame(tick);
+  const onPreference=()=>{if(media.matches){active=false;cancelAnimationFrame(raf);setDisplay(value)}};
+  media.addEventListener("change",onPreference);
+  return ()=>{active=false;cancelAnimationFrame(raf);media.removeEventListener("change",onPreference)};
+ },[value]);
+ return <><span aria-hidden="true">{display}</span><span className="sr-only">{value}</span></>;
+}
 function Stat({label,value,detail,icon,color}:{label:string;value:string;detail:string;icon:ReactNode;color:string}){
- return <div className={"stat-card stat-"+color}><div className="stat-top"><span>{label}</span><span className="stat-icon">{icon}</span></div><div className="stat-value">{value}</div><div className="stat-bottom"><span>{detail}</span></div></div>;
+ return <div className={"stat-card stat-"+color}><div className="stat-top"><span>{label}</span><span className="stat-icon">{icon}</span></div><div className="stat-value" aria-label={value}><AnimatedMetric value={value}/></div><div className="stat-bottom"><span>{detail}</span></div></div>;
 }
 function Trend({daily}:{daily:Metrics["daily"]}){
  const x=(i:number)=>46+i*560/6,y=(v:number)=>200-Math.min(v,100)*1.68;
