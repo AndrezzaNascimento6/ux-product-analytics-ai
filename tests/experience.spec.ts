@@ -101,7 +101,7 @@ test("reduced-motion preference disables all cinematic dashboard animations",asy
   expect(name,selector).toBe("none");
  }
  await expect(page.getByRole("button",{name:"Replay motion"})).toBeVisible();
- const value=await page.locator(".stat-card").first().locator(".stat-value").textContent();
+ const value=await page.locator(".stat-card").first().locator(".stat-value").getAttribute("aria-label");
  await page.getByRole("button",{name:"Replay motion"}).click();
  await expect(page.locator(".stat-card").first().locator(".stat-value")).toHaveAttribute("aria-label",value||"196");
 });
