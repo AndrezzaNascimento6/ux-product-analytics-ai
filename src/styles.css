@@ -239,3 +239,67 @@ h1,h2,h3,p{margin-top:0}h1,h2,h3{letter-spacing:-.045em}h1,h2{font-family:Manrop
 @media(max-width:1080px){.nova-connection-layout{grid-template-columns:1fr}.nova-connection-layout .journey-explainer{min-height:0}.nova-product-preview{min-height:590px}}
 @media(max-width:690px){.nova-product-preview{min-height:570px;padding:28px}.nova-preview-top{top:25px;left:27px;right:27px}.nova-preview-top small{font-size:8px}.nova-preview-foot{left:27px;bottom:26px}.nova-product-preview h2{font-size:clamp(43px,12vw,72px)}}
 @media(max-width:375px){.nova-product-preview{min-height:530px}.nova-preview-top small{max-width:135px;text-align:right}}
+
+/* Legibility pass: replace overly small 8–11px interface copy.
+   Maintain the editorial scale while respecting responsive layouts. */
+.sidebar-brand small{font-size:10px;letter-spacing:.11em}
+.sidebar-workspace strong,.sidebar-footer strong,.side-links button,
+.side-project-note strong{font-size:13px}
+.sidebar-workspace small,.sidebar-footer small,.nav-section-title,
+.side-project-note p,.mini-insight-label{font-size:12px}
+.sidebar-workspace small,.sidebar-footer small{line-height:1.45}
+.topbar-location,.topbar-location strong,.project-status{font-size:12px}
+.eyebrow,.experiment-no,.research-kicker,.research-section-label>div,
+.claude-eyebrow,.research-bottom>div>span{font-size:12px}
+.page-intro p{font-size:15px;line-height:1.75}
+.button-primary,.button-outline,.notice-banner button,.segmented button{font-size:13px}
+.notice-banner strong{font-size:15px}
+.notice-banner>div>span{font-size:13px}
+.data-toolbar-left,.toolbar-muted{font-size:12px;letter-spacing:0}
+.stat-top{font-size:13px}
+.stat-bottom>span{font-size:12px;line-height:1.5}
+.section-heading h2{font-size:18px}
+.section-heading p{font-size:13px;line-height:1.55}
+.section-tag,.funnel-row-header b,.hypothesis-index{font-size:11px}
+.trend-title strong{font-size:14px}
+.trend-title>div span,.legend{font-size:12px}
+.trend-chart text{font-size:13px}
+.funnel-row-header{font-size:13px}
+.funnel-row-header strong{font-size:14px}
+.funnel-row-header small{font-size:12px}
+.card-footnote,.data-disclaimer{font-size:12px;line-height:1.6}
+.event-item strong{font-size:13px}
+.event-item>div span,.event-item time{font-size:12px}
+.feed-empty strong{font-size:15px}
+.feed-empty p{font-size:13px}
+.insight-top span:last-child,.insight-summary button{font-size:12px}
+.insight-summary p{font-size:13px}
+.main-footer{font-size:11px;letter-spacing:.05em}
+.experiment-warning,.how-it-works small,.session-events>span{font-size:13px}
+.how-it-works strong,.journey-explainer>p{font-size:14px}
+.session-head strong,.session-tags span,.live-mark{font-size:11px}
+.nova-preview-top small,.nova-preview-kicker,.nova-preview-foot{font-size:12px}
+.nova-product-preview>a{font-size:13px}
+.research-hero p,.claude-content p{font-size:14px}
+.research-hero-stats span{font-size:13px}
+.research-section-label>span{font-size:11px}
+.hypothesis-card>p,.hypothesis-method strong{font-size:13px;line-height:1.75}
+.hypothesis-method span,.research-caveat strong{font-size:12px}
+.research-caveat span{font-size:13px;line-height:1.75}
+.claude-text-link{font-size:13px}
+.connection-warning{display:flex;align-items:flex-start;gap:12px;border:1px solid #e4d3a8;background:#fff6e7;color:#624b24;padding:15px 18px;border-radius:13px;margin:-3px 0 19px;font-size:13px;line-height:1.5}
+.connection-warning svg{flex:none;margin-top:2px;color:#9e6b2b}
+.connection-warning strong{display:block;font-size:14px;margin-bottom:4px}
+.connection-warning p{margin:0;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:690px){
+ .stat-top{font-size:12px}
+ .stat-bottom>span{font-size:11px}
+ .section-heading h2{font-size:16px}
+ .section-heading p{font-size:12px}
+ .topbar-location strong,.project-status{font-size:11px}
+ .notice-banner button{margin-left:0}
+ .data-toolbar-left{font-size:11px}
+ .nova-preview-top small{font-size:10px}
+ .funnel-row-header{font-size:12px}
+ .trend-chart text{font-size:12px}
+}

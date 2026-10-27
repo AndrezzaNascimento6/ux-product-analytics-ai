@@ -49,3 +49,21 @@ test("skip link is first keyboard target",async({page})=>{
  await page.goto("/");await page.keyboard.press("Tab");
  await expect(page.getByRole("link",{name:"Skip to content"})).toBeFocused();
 });
+
+
+test("dashboard labels use readable text sizes",async({page})=>{
+ await page.goto("/");
+ for(const selector of [".stat-top",".section-heading p",".funnel-row-header",".data-toolbar-left",".side-links button"]){
+  const font=await page.locator(selector).first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  expect(font,selector+" should not be tiny").toBeGreaterThanOrEqual(12);
+ }
+});
+
+test("mobile KPI labels remain readable without horizontal scrolling",async({page})=>{
+ await page.setViewportSize({width:320,height:720});
+ await page.goto("/");
+ const font=await page.locator(".stat-top").first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+ expect(font).toBeGreaterThanOrEqual(12);
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+ expect(overflow).toBeLessThanOrEqual(1);
+});

@@ -34,6 +34,12 @@ create policy "nova_demo_insert" on public.nova_events for insert to anon with c
  and device_type in ('mobile','tablet','desktop')
  and (duration_ms is null or duration_ms between 0 and 3600000)
 );
+-- Required when "Automatically expose new tables" was disabled on project creation.
+-- RLS policies alone do not grant table privileges to the anonymous API role.
+-- Expose ONLY read + insert for this deliberately public, anonymous experiment.
+grant usage on schema public to anon;
+grant select, insert on table public.nova_events to anon;
+
 -- Supabase Realtime must be enabled on this table once.
 do $$ begin
  if not exists (

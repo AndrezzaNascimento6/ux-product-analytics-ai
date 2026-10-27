@@ -7,28 +7,56 @@ const url=import.meta.env.VITE_SUPABASE_URL?.trim(),key=import.meta.env.VITE_SUP
 export const cloudConfigured=Boolean(url&&key);
 const db=cloudConfigured?createClient(url!,key!,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 type Raw=Omit<UXEvent,"source">;
-export type Status="demo"|"connecting"|"connected"|"error";
+export type Status="demo"|"connecting"|"connected"|"polling"|"error";
 export function useEventStream(){
  const [observed,setObserved]=useState<UXEvent[]>([]);
  const [syncStatus,setSyncStatus]=useState<Status>(db?"connecting":"demo");
+ const [connectionIssue,setConnectionIssue]=useState<string|null>(null);
  useEffect(()=>{
   if(!db)return;
-  let active=true;
+  let active=true,apiChecked=false,apiAvailable=false,realtimeAvailable=false;
   const merge=(incoming:UXEvent[])=>setObserved(prev=>{
    const map=new Map([...prev,...incoming].map(x=>[x.id,x] as const));
    return [...map.values()].sort((a,b)=>a.created_at.localeCompare(b.created_at)).slice(-1500);
   });
-  void db.from("nova_events").select("*").order("created_at",{ascending:false}).limit(1000).then(({data,error})=>{
-    if(!active)return;
-    if(error){setSyncStatus("error");console.warn(error.message);return}
+  const updateStatus=()=>{
+   if(!active||!apiChecked)return;
+   setSyncStatus(!apiAvailable?"error":realtimeAvailable?"connected":"polling");
+  };
+  const refresh=async()=>{
+   const {data,error}=await db.from("nova_events").select("*").order("created_at",{ascending:false}).limit(1000);
+   if(!active)return;
+   apiChecked=true;apiAvailable=!error;
+   if(error){
+    const hint=error.code==="42501"
+     ?"Anonymous read permission is missing. Run supabase/fix_nova_permissions.sql in the Supabase SQL Editor."
+     :error.code==="PGRST205"||error.code==="42P01"
+      ?"The nova_events table was not found. Check supabase/nova_schema.sql."
+      :"Unable to read nova_events ("+(error.code||"network error")+"). Check Supabase connectivity and policies.";
+    setConnectionIssue(hint);
+    console.warn("SIGNAL data connection:",error.message);
+   }else{
     merge(((data||[]) as Raw[]).map(x=>({...x,source:"observed"})));
-  });
-  const channel=db.channel("nova-signal-live").on("postgres_changes",{event:"INSERT",schema:"public",table:"nova_events"},payload=>{
+    setConnectionIssue(null);
+   }
+   updateStatus();
+  };
+  void refresh();
+  // If WebSocket delivery is unavailable, fall back to periodic reads so the
+  // dashboard does not silently stop updating.
+  const interval=window.setInterval(()=>{void refresh()},12000);
+  const channel=db.channel("nova-signal-live")
+   .on("postgres_changes",{event:"INSERT",schema:"public",table:"nova_events"},payload=>{
     if(active&&payload.new?.id)merge([{...(payload.new as Raw),source:"observed"}]);
-  }).subscribe(state=>{if(active)setSyncStatus(state==="SUBSCRIBED"?"connected":state==="CHANNEL_ERROR"||state==="TIMED_OUT"?"error":"connecting")});
-  return ()=>{active=false;void db.removeChannel(channel)};
+   })
+   .subscribe(state=>{
+    if(!active)return;
+    realtimeAvailable=state==="SUBSCRIBED";
+    updateStatus();
+   });
+  return ()=>{active=false;window.clearInterval(interval);void db.removeChannel(channel)};
  },[]);
- return {observed,syncStatus};
+ return {observed,syncStatus,connectionIssue};
 }
 const SECTIONS:NovaSection[]=["hero","experience","security","wealth","world","benefits","app"];
 export const SECTION_LABELS:Record<NovaSection,string>={hero:"Introduction",experience:"Signature card",security:"Security",wealth:"Wealth",world:"Worldwide",benefits:"Benefits",app:"Banking app",footer:"Footer"};
