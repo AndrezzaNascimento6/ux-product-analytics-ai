@@ -69,3 +69,14 @@ Claude is a **human-in-the-loop analysis step**, not an embedded live API integr
 This is a portfolio experiment. Consent introduces sampling bias, data can be blocked, and browser end events can be missing. Section observations capture discoverability, not users' motivations. Synthetic data are illustrative, not study results. Manual accessibility and usability testing are still needed.
 
 © 2026 SIGNAL / NOVA Research Lab
+
+
+## Fix: 'Supabase connection error' / no observed events
+
+If you created the Supabase project with **Automatically expose new tables** disabled, the table's RLS policies are not sufficient. The database role `anon` also needs the explicit, minimal privileges `SELECT` and `INSERT`.
+
+Open your **nova-analytics → SQL Editor** and run [supabase/fix_nova_permissions.sql](supabase/fix_nova_permissions.sql) once. The script grants only those two operations to `anon` and asks PostgREST to refresh its schema; it doesn't delete rows or change the table structure.
+
+Then refresh both sites. SIGNAL tries Supabase Realtime and falls back to reading new events every 12 seconds. On NOVA, previously consented anonymous events held locally can be retried after the database access is repaired.
+
+Do not enable automatic public access to every new table just for this fix; keep least-privilege grants per table.
