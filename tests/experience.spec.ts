@@ -4,7 +4,7 @@ import {readFile} from "node:fs/promises";
 test("NOVA dashboard is explicit about illustrative data and metrics",async({page})=>{
  await page.goto("/");
  await expect(page.getByRole("heading",{name:/Understand the whole experience/i})).toBeVisible();
- await expect(page.getByText(/Includes 196 explicitly synthetic reference sessions/i)).toBeVisible();
+ await expect(page.getByText(/Displays 196 fictional reference sessions only./i)).toBeVisible();
  await expect(page.locator(".stats-grid .stat-card").first().locator(".stat-value")).toHaveAttribute("aria-label","196");
  await expect(page.getByRole("heading",{name:"Section discovery"})).toBeVisible();
  await expect(page.locator(".funnel-row")).toHaveCount(7);
