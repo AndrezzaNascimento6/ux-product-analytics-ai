@@ -1,5 +1,5 @@
 import {useMemo,useState,type ReactNode} from "react";
-import {Activity,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
+import {Activity,AlertCircle,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
 import {computeMetrics,exportCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type UXEvent} from "./analytics";
 type Page="overview"|"journey"|"research";type Source="combined"|"observed";
 const pct=(v:number)=>v.toFixed(1)+"%";const count=(v:number)=>new Intl.NumberFormat("en-US").format(v);
@@ -45,14 +45,15 @@ function Trend({daily}:{daily:Metrics["daily"]}){
  <path d={line+" L "+x(6)+" 200 L "+x(0)+" 200 Z"} fill="url(#trend-fill)"/><path d={line} fill="none" stroke="#2d866f" strokeWidth="3.2" strokeLinecap="round"/>
  {daily.map((d,i)=><g key={d.date}><circle cx={x(i)} cy={y(d.rate)} r="4" fill="#2d866f" stroke="white" strokeWidth="2"/><text x={x(i)} y="233" textAnchor="middle" fill="#7c8d88" fontSize="12">{d.label}</text></g>)}</svg></div>;
 }
-function Overview({metrics,observed,source,setSource,status,openNova,openResearch}:{metrics:Metrics;observed:UXEvent[];source:Source;setSource:(s:Source)=>void;status:string;openNova:()=>void;openResearch:()=>void}){
+function Overview({metrics,observed,source,setSource,status,connectionIssue,openNova,openResearch}:{metrics:Metrics;observed:UXEvent[];source:Source;setSource:(s:Source)=>void;status:string;connectionIssue:string|null;openNova:()=>void;openResearch:()=>void}){
  const baseline=source==="combined";
  return <>
  <Intro label="NOVA / PRODUCT EXPERIENCE ANALYTICS" title="Understand the" accent="whole experience." subtitle="Measuring section discoverability, accessible motion preferences and fictional banking interactions."
  action={<button className="button-primary" onClick={openNova}>Explore NOVA <ArrowUpRight size={17}/></button>}/>
  <div className="notice-banner"><span className="notice-icon"><Globe2 size={19}/></span><div><strong>One product. Two perspectives.</strong><span>NOVA is the experience. SIGNAL helps us examine what happens inside it — with consent-first anonymous events.</span></div><button onClick={openNova}>View product <ArrowRight size={16}/></button></div>
- <div className="data-toolbar"><div className="data-toolbar-left"><span className="live-ring"><span/></span><span>{status==="connected"?"CLOUD REALTIME":"LOCAL / SYNTHETIC PREVIEW"}</span><i/><span className="toolbar-muted">{status==="error"?"Supabase connection error":status==="connecting"?"Connecting to Supabase":status==="demo"?"Cloud setup required":"New consented events appear live"}</span></div>
+ <div className="data-toolbar"><div className="data-toolbar-left"><span className="live-ring"><span/></span><span>{status==="connected"?"CLOUD REALTIME":status==="polling"?"CLOUD / AUTO REFRESH":status==="error"?"CLOUD CONNECTION ERROR":"LOCAL / SYNTHETIC PREVIEW"}</span><i/><span className="toolbar-muted">{status==="error"?"Check database permissions":status==="connecting"?"Connecting to Supabase":status==="demo"?"Cloud setup required":status==="polling"?"Checking for new data every 12s":"New consented events appear live"}</span></div>
   <div className="segmented" role="group" aria-label="Data source"><button className={baseline?"selected":""} aria-pressed={baseline} onClick={()=>setSource("combined")}>All data</button><button className={!baseline?"selected":""} aria-pressed={!baseline} onClick={()=>setSource("observed")}>Observed only</button></div></div>
+ {status==="error"&&<div className="connection-warning" role="status"><AlertCircle size={19}/><div><strong>Analytics connection needs attention</strong><p>{connectionIssue||"The database could not be reached. Check the Supabase project settings."}</p></div></div>}
  <div className="stats-grid">
  <Stat label="NOVA sessions" value={count(metrics.visits)} detail="Consented or synthetic sessions" icon={<Users size={19}/>} color="blue"/>
  <Stat label="App section reach" value={pct(metrics.appReachRate)} detail="Sessions that reached mobile banking" icon={<WalletCards size={19}/>} color="mint"/>
@@ -103,11 +104,11 @@ function Research({events,metrics}:{events:UXEvent[];metrics:Metrics}){
 }
 export default function App(){
  const [page,setPage]=useState<Page>("overview"),[menuOpen,setMenuOpen]=useState(false),[source,setSource]=useState<Source>("combined");
- const {observed,syncStatus}=useEventStream(),synthetic=useMemo(()=>makeSyntheticEvents(),[]);
+ const {observed,syncStatus,connectionIssue}=useEventStream(),synthetic=useMemo(()=>makeSyntheticEvents(),[]);
  const events=useMemo(()=>source==="combined"?[...synthetic,...observed]:observed,[synthetic,observed,source]),metrics=useMemo(()=>computeMetrics(events),[events]);
  const change=(p:Page)=>{setPage(p);window.scrollTo({top:0,behavior:"instant"})},goNova=()=>window.open(NOVA_URL,"_blank","noopener,noreferrer");
  return <div className="app-shell"><a href="#main-content" className="skip-link">Skip to content</a><AppNav page={page} setPage={change} open={menuOpen} close={()=>setMenuOpen(false)}/>
- <div className="page-shell"><header className="topbar"><div className="topbar-location"><span>WORKSPACE</span><ChevronRight size={13}/><strong>{page==="overview"?"Analytics overview":page==="journey"?"NOVA experience":"AI research"}</strong></div><div className="topbar-right"><span className="project-status"><span className="status-pulse"/> {syncStatus==="connected"?"CLOUD CONNECTED":syncStatus==="demo"?"DEMO MODE":syncStatus==="connecting"?"CONNECTING":"CLOUD UNAVAILABLE"}</span><div className="avatar-bubble">N</div><button className="icon-button mobile-menu-button" aria-label={menuOpen?"Close navigation":"Open navigation"} aria-expanded={menuOpen} onClick={()=>setMenuOpen(x=>!x)}>{menuOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header>
- <main id="main-content" className="main-content">{page==="overview"?<Overview metrics={metrics} observed={observed} source={source} setSource={setSource} status={syncStatus} openNova={goNova} openResearch={()=>change("research")}/>:page==="journey"?<Journey goResearch={()=>change("research")}/>:<Research events={events} metrics={metrics}/>}
+ <div className="page-shell"><header className="topbar"><div className="topbar-location"><span>WORKSPACE</span><ChevronRight size={13}/><strong>{page==="overview"?"Analytics overview":page==="journey"?"NOVA experience":"AI research"}</strong></div><div className="topbar-right"><span className="project-status"><span className="status-pulse"/> {syncStatus==="connected"?"CLOUD CONNECTED":syncStatus==="polling"?"AUTO REFRESH":syncStatus==="demo"?"DEMO MODE":syncStatus==="connecting"?"CONNECTING":"CLOUD UNAVAILABLE"}</span><div className="avatar-bubble">N</div><button className="icon-button mobile-menu-button" aria-label={menuOpen?"Close navigation":"Open navigation"} aria-expanded={menuOpen} onClick={()=>setMenuOpen(x=>!x)}>{menuOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header>
+ <main id="main-content" className="main-content">{page==="overview"?<Overview metrics={metrics} observed={observed} source={source} setSource={setSource} status={syncStatus} connectionIssue={connectionIssue} openNova={goNova} openResearch={()=>change("research")}/>:page==="journey"?<Journey goResearch={()=>change("research")}/>:<Research events={events} metrics={metrics}/>}
  <footer className="main-footer"><span>© 2026 SIGNAL / NOVA RESEARCH LAB</span><span>UX · PRODUCT ANALYTICS · AI <span className="footer-star">✳</span></span></footer></main></div></div>;
 }
