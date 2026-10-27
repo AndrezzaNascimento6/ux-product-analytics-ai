@@ -1,15 +1,11 @@
-# Claude — analyze the SIGNAL × NOVA research CSV
+# Claude research prompt — privacy-safe SIGNAL CSV
 
-Analyze the supplied CSV as an expert UX Researcher.
+Analyze the attached `signal-nova-aggregated.csv` as a UX Researcher.
 
-- Start by reporting observed versus synthetic events and sessions separately. Never call synthetic rows real users or research participants.
-- Define NOVA section-reach percentage as distinct opted-in sessions viewing the section / distinct sessions with visit_started. Report small sample sizes and denominators.
-- Count meaningful controls used (modal, navigation, benefits, in-app demo) and motion-preference changes. The latter is not an indicator of disability or which motion state was chosen.
-- Compute duration only from visit_ended events where duration_ms is valid. Explicitly report missing end events.
-- Do not label people as having abandoned the flow or completed real banking transactions.
-- Separate Observations, Hypotheses, Recommendations and Evidence Limitations.
-- Offer three testable hypotheses about motion discoverability, accessibility, and banking-demo interaction, plus follow-up qualitative and quantitative studies.
-- Do not infer demographic traits, causal effects, personal intentions, profitability or conversion to customers.
-- Conclude with a succinct 5-sentence Product Design case-study paragraph, suitable for LinkedIn, in English.
+This export contains only **aggregate groups** from a fictional banking website. It intentionally omits IPs, precise timestamps, session IDs, individual rows and per-person journeys. Never pretend this CSV supports visitor-journey reconstruction or a verified number of distinct people.
 
-No invented numbers, no invented interviews, no false AI-integration claims.
+Summarize total browser-session starts, app section reach, deliberate interaction rates, section discovery, averaged completed-session duration, event group counts and changes in the reduced-motion preference. Distinguish **Synthetic demo** from **Observed aggregate** according to the source column. With small samples, avoid broad generalization.
+
+Propose three testable hypotheses for discoverability, accessibility and mobile use. Suggest moderated usability and assistive-technology research. Note sampling bias, incomplete event delivery, possible manipulated anonymous traffic and the distinction between page visibility and content comprehension.
+
+Finish with a 5-sentence Product Design case-study paragraph suitable for LinkedIn, clearly labelling the project an exploratory prototype—not a formal participant study.

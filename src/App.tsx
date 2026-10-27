@@ -1,19 +1,19 @@
-import {useMemo,useState,type ReactNode} from "react";
+import {useEffect,useMemo,useState,type ReactNode} from "react";
 import {Activity,AlertCircle,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,RefreshCcw,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
-import {computeMetrics,exportCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type UXEvent} from "./analytics";
+import {computeMetrics,exportAggregateCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type SummaryEvent} from "./analytics";
 type Page="overview"|"journey"|"research";type Source="combined"|"observed";
 const pct=(v:number)=>v.toFixed(1)+"%";const count=(v:number)=>new Intl.NumberFormat("en-US").format(v);
 const timing=(v:number)=>v>0?Math.floor(v/60)+"m "+Math.round(v%60)+"s":"—";
 const NOVA_URL="https://wandr-3d-travel-experience.vercel.app/";
-const prompt=`Act as a UX Researcher examining anonymous interaction analytics for NOVA, a fictional premium banking design experience.
+const prompt=`Act as a UX Researcher analyzing a privacy-preserving AGGREGATED CSV from the NOVA + SIGNAL fictional banking prototype.
 
-Study the attached SIGNAL CSV. First identify which rows are synthetic versus observed. Do not present synthetic sessions as real participants. Each session_id represents a pseudonymous browser session, not a verified unique person.
+The file contains group-level counts and percentage rates, not row-level event logs. It does not include IP addresses, session IDs, unique visitors, personal information, or individual event timelines.
 
-Compute session starts; percentage reaching each scroll section; percentage performing any deliberate interactions; reach of banking app; frequency of demo transfer completions; use of reduced motion; explicit measured session duration where available. Explain denominators and missing values. Do not label a session abandoned simply because tracking ended.
+Explain the aggregate session count, app section reach, deliberate interaction rate, observed durations where present, section reach by area and top event categories. Treat synthetic and observed aggregates separately. Do not infer exact user journeys, unique people, demographic characteristics, motivation, conversions, or causality.
 
-Separate observations, hypotheses and recommendations. Formulate three testable hypotheses about discoverability, accessibility and mobile interactions. Suggest follow-up usability research. Never infer demographics, motivation, conversion to paying customers, actual banking transactions, or causality.
+Write three testable UX hypotheses about discoverability, accessible motion and mobile interaction. Recommend follow-up moderated and accessibility research. Call out consent-based sampling, instrumentation error, data integrity, small sample sizes and possible fake events as limitations.
 
-Summarize in five sentences suitable for a Product Design case study. Include a limitations section about consent-based sampling, simulated data, possible blocking and non-representativeness.`;
+Produce a five-sentence exploratory Product Design case-study summary plus recommended next tests. Do not claim this constitutes formal participant research.`;
 function Logo(){return <div className="brand-symbol" aria-hidden="true"><span/><span/><span/></div>}
 function Card({children,className=""}:{children:ReactNode;className?:string}){return <section className={"surface "+className}>{children}</section>}
 function Heading({title,detail,tag,icon}:{title:string;detail:string;tag?:string;icon?:ReactNode}){return <div className="section-heading"><div className="section-heading-main"><div className="section-heading-icon">{icon??<Activity size={18}/>}</div><div><h2>{title}</h2><p>{detail}</p></div></div>{tag&&<span className="section-tag">{tag}</span>}</div>}
@@ -32,8 +32,34 @@ function AppNav({page,setPage,open,close}:{page:Page;setPage:(p:Page)=>void;open
 function Intro({label,title,accent,subtitle,action}:{label:string;title:string;accent:string;subtitle:string;action?:ReactNode}){
  return <div className="page-intro"><div><div className="eyebrow"><span className="eyebrow-line"/>{label}</div><h1>{title} <em>{accent}</em></h1><p>{subtitle}</p></div>{action&&<div className="page-intro-action">{action}</div>}</div>;
 }
+function AnimatedMetric({value}:{value:string}){
+ const [display,setDisplay]=useState(value);
+ useEffect(()=>{
+  const media=window.matchMedia("(prefers-reduced-motion: reduce)");
+  const match=/^([\d,.]+)(%)?$/.exec(value);
+  if(media.matches||!match){setDisplay(value);return}
+  const target=Number(match[1].replaceAll(",",""));
+  if(!Number.isFinite(target)){setDisplay(value);return}
+  const percentage=Boolean(match[2]);
+  let raf=0,start=0,active=true;
+  const tick=(now:number)=>{
+   if(!active)return;
+   if(!start)start=now;
+   const progress=Math.min(1,(now-start)/1450),eased=1-Math.pow(1-progress,3.4);
+   const n=target*eased;
+   setDisplay(percentage?n.toFixed(1)+"%":Math.round(n).toLocaleString("en-US"));
+   if(progress<1)raf=requestAnimationFrame(tick);else setDisplay(value);
+  };
+  setDisplay(percentage?"0.0%":"0");
+  raf=requestAnimationFrame(tick);
+  const onPreference=()=>{if(media.matches){active=false;cancelAnimationFrame(raf);setDisplay(value)}};
+  media.addEventListener("change",onPreference);
+  return ()=>{active=false;cancelAnimationFrame(raf);media.removeEventListener("change",onPreference)};
+ },[value]);
+ return <><span aria-hidden="true">{display}</span><span className="sr-only">{value}</span></>;
+}
 function Stat({label,value,detail,icon,color}:{label:string;value:string;detail:string;icon:ReactNode;color:string}){
- return <div className={"stat-card stat-"+color}><div className="stat-top"><span>{label}</span><span className="stat-icon">{icon}</span></div><div className="stat-value">{value}</div><div className="stat-bottom"><span>{detail}</span></div></div>;
+ return <div className={"stat-card stat-"+color}><div className="stat-top"><span>{label}</span><span className="stat-icon">{icon}</span></div><div className="stat-value" aria-label={value}><AnimatedMetric value={value}/></div><div className="stat-bottom"><span>{detail}</span></div></div>;
 }
 function Trend({daily}:{daily:Metrics["daily"]}){
  const x=(i:number)=>46+i*560/6,y=(v:number)=>200-Math.min(v,100)*1.68;
@@ -45,19 +71,19 @@ function Trend({daily}:{daily:Metrics["daily"]}){
  <path className="trend-area" d={line+" L "+x(6)+" 200 L "+x(0)+" 200 Z"} fill="url(#trend-fill)"/><path className="trend-line" pathLength="1" d={line} fill="none" stroke="#2d866f" strokeWidth="3.2" strokeLinecap="round"/>
  {daily.map((d,i)=><g key={d.date}><circle className="trend-point" style={{animationDelay:(.7+i*.075)+"s"}} cx={x(i)} cy={y(d.rate)} r="4" fill="#2d866f" stroke="white" strokeWidth="2"/><text x={x(i)} y="233" textAnchor="middle" fill="#7c8d88" fontSize="12">{d.label}</text></g>)}</svg></div>;
 }
-function Overview({metrics,observed,source,setSource,status,connectionIssue,openNova,openResearch}:{metrics:Metrics;observed:UXEvent[];source:Source;setSource:(s:Source)=>void;status:string;connectionIssue:string|null;openNova:()=>void;openResearch:()=>void}){
+function Overview({metrics,topEvents,source,setSource,status,connectionIssue,openNova,openResearch}:{metrics:Metrics;topEvents:SummaryEvent[];source:Source;setSource:(s:Source)=>void;status:string;connectionIssue:string|null;openNova:()=>void;openResearch:()=>void}){
  const baseline=source==="combined";
  const [motionCycle,setMotionCycle]=useState(0);
  return <div className="signal-motion-canvas">
  <Intro label="NOVA / PRODUCT EXPERIENCE ANALYTICS" title="Understand the" accent="whole experience." subtitle="Measuring section discoverability, accessible motion preferences and fictional banking interactions."
  action={<button className="button-primary" onClick={openNova}>Explore NOVA <ArrowUpRight size={17}/></button>}/>
  <div className="notice-banner"><span className="notice-icon"><Globe2 size={19}/></span><div><strong>One product. Two perspectives.</strong><span>NOVA is the experience. SIGNAL helps us examine what happens inside it — with consent-first anonymous events.</span></div><button onClick={openNova}>View product <ArrowRight size={16}/></button></div>
- <div className="data-toolbar"><div className="data-toolbar-left"><span className="live-ring"><span/></span><span>{status==="connected"?"CLOUD REALTIME":status==="polling"?"CLOUD / AUTO REFRESH":status==="error"?"CLOUD CONNECTION ERROR":"LOCAL / SYNTHETIC PREVIEW"}</span><i/><span className="toolbar-muted">{status==="error"?"Check database permissions":status==="connecting"?"Connecting to Supabase":status==="demo"?"Cloud setup required":status==="polling"?"Checking for new data every 12s":"New consented events appear live"}</span></div>
-  <div className="data-toolbar-actions"><button className="replay-motion-button" type="button" onClick={()=>setMotionCycle(value=>value+1)}><RefreshCcw size={15} aria-hidden="true"/> Replay motion</button><div className="segmented" role="group" aria-label="Data source"><button className={baseline?"selected":""} aria-pressed={baseline} onClick={()=>setSource("combined")}>All data</button><button className={!baseline?"selected":""} aria-pressed={!baseline} onClick={()=>setSource("observed")}>Observed only</button></div></div></div>
+ <div className="data-toolbar"><div className="data-toolbar-left"><span className="live-ring"><span/></span><span>{status==="polling"?"CLOUD / PRIVATE SUMMARY":status==="error"?"CLOUD CONNECTION ERROR":"LOCAL / SYNTHETIC PREVIEW"}</span><i/><span className="toolbar-muted">{status==="error"?"Check database permissions":status==="connecting"?"Connecting to Supabase":status==="demo"?"Cloud setup required":status==="polling"?"Privacy-safe summaries refresh every 8s":"Anonymous aggregate analytics"}</span></div>
+  <div className="data-toolbar-actions"><button className="replay-motion-button" type="button" onClick={()=>setMotionCycle(value=>value+1)}><RefreshCcw size={15} aria-hidden="true"/> Replay motion</button><div className="segmented" role="group" aria-label="Data source"><button className={baseline?"selected":""} aria-pressed={baseline} onClick={()=>setSource("combined")}>Synthetic demo</button><button className={!baseline?"selected":""} aria-pressed={!baseline} onClick={()=>setSource("observed")}>Observed aggregate</button></div></div></div>
  {status==="error"&&<div className="connection-warning" role="status"><AlertCircle size={19}/><div><strong>Analytics connection needs attention</strong><p>{connectionIssue||"The database could not be reached. Check the Supabase project settings."}</p></div></div>}
  <div className="motion-display" key={source+"-"+motionCycle}>
  <div className="stats-grid">
- <Stat label="NOVA sessions" value={count(metrics.visits)} detail="Consented or synthetic sessions" icon={<Users size={19}/>} color="blue"/>
+ <Stat label="NOVA sessions" value={count(metrics.visits)} detail={baseline?"Illustrative browser sessions":"Consented browser sessions"} icon={<Users size={19}/>} color="blue"/>
  <Stat label="App section reach" value={pct(metrics.appReachRate)} detail="Sessions that reached mobile banking" icon={<WalletCards size={19}/>} color="mint"/>
  <Stat label="Interaction rate" value={pct(metrics.interactionRate)} detail="Sessions using at least one control" icon={<MousePointerClick size={19}/>} color="peach"/>
  <Stat label="Avg. observed duration" value={timing(metrics.avgTimeSeconds)} detail="Only sessions with an end event" icon={<Clock3 size={19}/>} color="purple"/>
@@ -67,11 +93,11 @@ function Overview({metrics,observed,source,setSource,status,connectionIssue,open
  <div className="funnel-list">{metrics.sectionFunnel.map((section,i)=><div className="funnel-row" key={section.name}><div className="funnel-row-header"><span><b>{String(i+1).padStart(2,"0")}</b>{section.name}</span><strong>{count(section.count)} <small>{pct(section.rate)}</small></strong></div><div className="funnel-track"><div className={"funnel-bar funnel-"+i%4} style={{width:section.rate+"%"}}/></div></div>)}</div>
  <p className="card-footnote">Each section counts only once per session. Visits do not imply comprehension or satisfaction.</p></Card></div>
  <div className="analytics-grid bottom-grid">
- <Card className="feed-card"><Heading title="NOVA event stream" detail="Most recent consented interactions." tag="OBSERVED" icon={<Radio size={18}/>}/>
- {observed.length===0?<div className="feed-empty"><div><Activity size={27}/></div><strong>No observed sessions yet</strong><p>Connect Supabase and opt into analytics on NOVA to see real events from different devices.</p></div>:
- <div className="event-list" role="log" aria-label="Latest NOVA events">{observed.slice(-5).reverse().map(e=><div className="event-item" key={e.id}><span className="event-mark"><Activity size={14}/></span><div><strong>{EVENT_LABELS[e.event_name]}</strong><span>{e.section?SECTION_LABELS[e.section]:"Session"} · {e.device_type}</span></div><time>{new Date(e.created_at).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</time></div>)}</div>}</Card>
+ <Card className="feed-card"><Heading title="NOVA event stream" detail="Aggregate counts only. No visitor-level records exposed." tag="PRIVACY-SAFE" icon={<Radio size={18}/>}/>
+ {topEvents.length===0?<div className="feed-empty"><div><Activity size={27}/></div><strong>Waiting for aggregate data</strong><p>At least five consented browser sessions are required. No individual event histories are public.</p></div>:
+ <div className="event-list" aria-label="Aggregate NOVA event types">{topEvents.map((e,i)=><div className="event-item" key={e.event_name+"-"+e.section+"-"+i}><span className="event-mark"><Activity size={14}/></span><div><strong>{EVENT_LABELS[e.event_name]||"Event"}</strong><span>{e.section?SECTION_LABELS[e.section]:"All sections"} · grouped count</span></div><span className="event-count">{count(e.count)}</span></div>)}</div>}</Card>
  <Card className="insight-summary"><div className="insight-top"><span><Lightbulb size={19}/></span><span>RESEARCH SIGNAL</span></div><h2>Motion invites<br/><em>attention.</em><br/>Data invites <em>questions.</em></h2><p>{count(metrics.motionChanges)} motion-preference changes, {count(metrics.benefits)} benefit interactions and {count(metrics.transfers)} simulated transfers in the selected dataset.</p><button onClick={openResearch}>Explore research questions <ArrowUpRight size={18}/></button></Card></div>
- <div className="data-disclaimer"><ShieldCheck size={17}/><span>{baseline?"Includes 196 explicitly synthetic reference sessions.":"Only actual consented demo interactions, not recruited participants."} {status!=="connected"?"No cross-device tracking until Supabase is configured.": "Live events are stored in the demo Supabase database."} These are experience metrics, not banking transactions or sales.</span></div>
+ <div className="data-disclaimer"><ShieldCheck size={17}/><span>{baseline?"Displays 196 fictional reference sessions only.":"Only aggregated consented demo interactions; no user-level records."} {status!=="polling"?"Secure aggregate analytics require database configuration.":"Public data never contains session IDs or individual event histories."} These are experience metrics, not banking transactions or sales.</span></div>
  </div>
  </div>;
 }
@@ -88,7 +114,7 @@ function Journey({goResearch}:{goResearch:()=>void}){
  <div className="nova-product-preview"><div className="nova-preview-stars" aria-hidden="true"/><div className="nova-preview-top"><span>nova</span><small>PRIVATE BANKING CONCEPT</small></div><span className="nova-preview-kicker">THE ART OF MORE.</span><h2>EXPLORE<br/><em>THE NOVA.</em></h2><p>Cinematic chapters. A fictional mobile banking prototype. Accessibility-first motion.</p><a href={NOVA_URL} target="_blank" rel="noopener noreferrer">LAUNCH THE EXPERIENCE <ArrowUpRight size={20}/></a><small className="nova-preview-foot">EXTERNAL PRODUCT / opens new tab</small></div>
  </div><div className="research-bottom"><div><span>AFTER YOU EXPLORE</span><h2>See what the<br/>signals reveal.</h2></div><button className="button-primary" onClick={goResearch}>Research with Claude <ArrowRight size={17}/></button></div></>;
 }
-function Research({events,metrics}:{events:UXEvent[];metrics:Metrics}){
+function Research({metrics,topEvents,source}:{metrics:Metrics;topEvents:SummaryEvent[];source:Source}){
  const [copied,setCopied]=useState(false);
  const copy=async()=>{try{await navigator.clipboard.writeText(prompt);setCopied(true);setTimeout(()=>setCopied(false),1800)}catch{setCopied(false)}};
  const scenarios=[
@@ -97,21 +123,23 @@ function Research({events,metrics}:{events:UXEvent[];metrics:Metrics}){
  {index:"03",label:"INTERACTIVE DEMO",title:"Which banking interactions are discoverable and meaningful?",detail:count(metrics.transfers)+" fictional transfers and "+count(metrics.benefits)+" benefits explored. Neither metric reflects real financial behavior.",method:"Moderated interviews plus task-based observation."}
  ];
  return <><Intro label="AI + UX RESEARCH / NOVA EXPERIMENT" title="Ask better" accent="questions." subtitle="Use consented analytics to frame hypotheses — and Claude to assist interpretation, not replace a researcher."
- action={<button className="button-primary" onClick={()=>exportCSV(events)}><Download size={17}/> Export events (.csv)</button>}/>
- <div className="research-hero"><div className="research-hero-glow"/><div className="research-kicker"><Sparkles size={16}/> RESEARCH, AUGMENTED BY AI</div><div className="research-hero-grid"><div><h2>AI can accelerate analysis.<br/><em>It shouldn't replace curiosity.</em></h2><p>Use real tracked events to explore accessibility and discoverability. Keep simulated reference activity separate and validate explanations through qualitative research.</p></div><div className="research-hero-decoration" aria-hidden="true"><BrainCircuit size={135} strokeWidth={.8}/></div></div><div className="research-hero-stats"><span><Database size={16}/>{count(events.length)} events</span><span><Users size={16}/>{count(metrics.visits)} sessions</span><span><ShieldCheck size={16}/> Anonymous + consent-based</span></div></div>
+ action={<button className="button-primary" onClick={()=>exportAggregateCSV(metrics,topEvents,source==="observed"?"observed":"synthetic")}><Download size={17}/> Export events (.csv)</button>}/>
+ <div className="research-hero"><div className="research-hero-glow"/><div className="research-kicker"><Sparkles size={16}/> RESEARCH, AUGMENTED BY AI</div><div className="research-hero-grid"><div><h2>AI can accelerate analysis.<br/><em>It shouldn't replace curiosity.</em></h2><p>Explore consented aggregate metrics to study accessibility and discoverability. Session-level data remains private. Validate hypotheses through qualitative research.</p></div><div className="research-hero-decoration" aria-hidden="true"><BrainCircuit size={135} strokeWidth={.8}/></div></div><div className="research-hero-stats"><span><Database size={16}/>{count(metrics.eventCount)} events</span><span><Users size={16}/>{count(metrics.visits)} sessions</span><span><ShieldCheck size={16}/> Anonymous + consent-based</span></div></div>
  <div className="research-section-label"><div><span className="eyebrow-line"/> QUESTIONS WORTH EXPLORING</div><span>RULE-BASED PREVIEW · NOT CLAUDE OUTPUT</span></div>
  <div className="hypotheses-grid">{scenarios.map(h=><article className="hypothesis-card" key={h.index}><span className="hypothesis-index">{h.index} / {h.label}</span><div className="hypothesis-icon"><Lightbulb size={22}/></div><h3>{h.title}</h3><p>{h.detail}</p><div className="hypothesis-method"><span>HOW TO VALIDATE</span><strong>{h.method}</strong></div></article>)}</div>
- <div className="claude-panel"><div className="claude-symbol"><BrainCircuit size={34}/></div><div className="claude-content"><span className="claude-eyebrow">NEXT STEP / HUMAN + AI RESEARCH</span><h2>Bring NOVA events to Claude.</h2><p>Download the events, copy the prompt, and upload the CSV to Claude. Ask it to distinguish observed and simulated data and suggest experiments that could validate the patterns.</p><div className="claude-actions"><button className="button-primary" onClick={()=>exportCSV(events)}><Download size={16}/> Download CSV</button><button className="button-outline on-dark" onClick={copy}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?"Prompt copied":"Copy Claude prompt"}</button><a href="https://claude.ai/new" className="claude-text-link" target="_blank" rel="noopener noreferrer">Open Claude <ExternalLink size={16}/></a></div></div></div>
- <div className="research-caveat"><ShieldCheck size={18}/><div><strong>Correlation is not causation.</strong><span>Simulated visits are illustrative, not recruited users. Real events require consent. No personal or financial information is tracked. The hypotheses shown here are deterministic templates, not live AI-generated analysis.</span></div></div>
+ <div className="claude-panel"><div className="claude-symbol"><BrainCircuit size={34}/></div><div className="claude-content"><span className="claude-eyebrow">NEXT STEP / HUMAN + AI RESEARCH</span><h2>Bring NOVA events to Claude.</h2><p>Export privacy-safe aggregate metrics, copy the prompt, and upload the CSV to Claude. The file excludes individual identifiers and precise event timestamps.</p><div className="claude-actions"><button className="button-primary" onClick={()=>exportAggregateCSV(metrics,topEvents,source==="observed"?"observed":"synthetic")}><Download size={16}/> Download CSV</button><button className="button-outline on-dark" onClick={copy}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?"Prompt copied":"Copy Claude prompt"}</button><a href="https://claude.ai/new" className="claude-text-link" target="_blank" rel="noopener noreferrer">Open Claude <ExternalLink size={16}/></a></div></div></div>
+ <div className="research-caveat"><ShieldCheck size={18}/><div><strong>Correlation is not causation.</strong><span>Simulated visits are illustrative, not recruited participants. Observed metrics are aggregates, with no individual trace available for public export. The hypotheses shown are deterministic templates, not live AI analysis.</span></div></div>
  </>;
 }
 export default function App(){
  const [page,setPage]=useState<Page>("overview"),[menuOpen,setMenuOpen]=useState(false),[source,setSource]=useState<Source>("combined");
- const {observed,syncStatus,connectionIssue}=useEventStream(),synthetic=useMemo(()=>makeSyntheticEvents(),[]);
- const events=useMemo(()=>source==="combined"?[...synthetic,...observed]:observed,[synthetic,observed,source]),metrics=useMemo(()=>computeMetrics(events),[events]);
+ const {summary,topEvents,syncStatus,connectionIssue}=useEventStream(),synthetic=useMemo(()=>makeSyntheticEvents(),[]);
+ const demoMetrics=useMemo(()=>computeMetrics(synthetic),[synthetic]);
+ const metrics=source==="observed"?(summary||computeMetrics([])):demoMetrics;
+ const displayedEvents=source==="observed"?topEvents:[];
  const change=(p:Page)=>{setPage(p);window.scrollTo({top:0,behavior:"instant"})},goNova=()=>window.open(NOVA_URL,"_blank","noopener,noreferrer");
  return <div className="app-shell"><a href="#main-content" className="skip-link">Skip to content</a><AppNav page={page} setPage={change} open={menuOpen} close={()=>setMenuOpen(false)}/>
- <div className="page-shell"><header className="topbar"><div className="topbar-location"><span>WORKSPACE</span><ChevronRight size={13}/><strong>{page==="overview"?"Analytics overview":page==="journey"?"NOVA experience":"AI research"}</strong></div><div className="topbar-right"><span className="project-status"><span className="status-pulse"/> {syncStatus==="connected"?"CLOUD CONNECTED":syncStatus==="polling"?"AUTO REFRESH":syncStatus==="demo"?"DEMO MODE":syncStatus==="connecting"?"CONNECTING":"CLOUD UNAVAILABLE"}</span><div className="avatar-bubble">N</div><button className="icon-button mobile-menu-button" aria-label={menuOpen?"Close navigation":"Open navigation"} aria-expanded={menuOpen} onClick={()=>setMenuOpen(x=>!x)}>{menuOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header>
- <main id="main-content" className="main-content">{page==="overview"?<Overview metrics={metrics} observed={observed} source={source} setSource={setSource} status={syncStatus} connectionIssue={connectionIssue} openNova={goNova} openResearch={()=>change("research")}/>:page==="journey"?<Journey goResearch={()=>change("research")}/>:<Research events={events} metrics={metrics}/>}
+ <div className="page-shell"><header className="topbar"><div className="topbar-location"><span>WORKSPACE</span><ChevronRight size={13}/><strong>{page==="overview"?"Analytics overview":page==="journey"?"NOVA experience":"AI research"}</strong></div><div className="topbar-right"><span className="project-status"><span className="status-pulse"/> {syncStatus==="polling"?"PRIVACY-SAFE CLOUD":syncStatus==="demo"?"DEMO MODE":syncStatus==="connecting"?"CONNECTING":"CLOUD UNAVAILABLE"}</span><div className="avatar-bubble">N</div><button className="icon-button mobile-menu-button" aria-label={menuOpen?"Close navigation":"Open navigation"} aria-expanded={menuOpen} onClick={()=>setMenuOpen(x=>!x)}>{menuOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header>
+ <main id="main-content" className="main-content">{page==="overview"?<Overview metrics={metrics} topEvents={displayedEvents} source={source} setSource={setSource} status={syncStatus} connectionIssue={connectionIssue} openNova={goNova} openResearch={()=>change("research")}/>:page==="journey"?<Journey goResearch={()=>change("research")}/>:<Research metrics={metrics} topEvents={displayedEvents} source={source}/>}
  <footer className="main-footer"><span>© 2026 SIGNAL / NOVA RESEARCH LAB</span><span>UX · PRODUCT ANALYTICS · AI <span className="footer-star">✳</span></span></footer></main></div></div>;
 }
