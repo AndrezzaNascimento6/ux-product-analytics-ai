@@ -36,7 +36,7 @@ function AnimatedMetric({value}:{value:string}){
  const [display,setDisplay]=useState(value);
  useEffect(()=>{
   const media=window.matchMedia("(prefers-reduced-motion: reduce)");
-  const match=/^([\\d,.]+)(%)?$/.exec(value);
+  const match=/^([\d,.]+)(%)?$/.exec(value);
   if(media.matches||!match){setDisplay(value);return}
   const target=Number(match[1].replaceAll(",",""));
   if(!Number.isFinite(target)){setDisplay(value);return}
