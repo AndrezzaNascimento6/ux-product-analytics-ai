@@ -124,10 +124,26 @@ export function computeMetrics(events:UXEvent[]):Metrics{
  sectionFunnel:SECTIONS.map(name=>({name:SECTION_LABELS[name],count:rows.filter(s=>s.sections.has(name)).length,rate:ratio(rows.filter(s=>s.sections.has(name)).length,visits)})),
  daily:lastWeek,devices:deviceCounts,sessionSources:{observed:rows.filter(s=>s.source==="observed").length,synthetic:rows.filter(s=>s.source==="synthetic").length},eventCount:events.length};
 }
-export function exportCSV(events:UXEvent[]){
- const fields=["id","session_id","event_name","section","device_type","duration_ms","created_at","source"] as const;
- const rows=[fields.join(","),...events.map(e=>fields.map(k=>'"'+String(e[k]??"").replaceAll('"','""')+'"').join(","))].join("\n");
- const uri=URL.createObjectURL(new Blob([rows],{type:"text/csv;charset=utf-8"}));
- const link=document.createElement("a");link.href=uri;link.download="signal-nova-events.csv";document.body.appendChild(link);link.click();link.remove();
- setTimeout(()=>URL.revokeObjectURL(uri),1000);
+// Only aggregate values leave SIGNAL. Never export browser/session IDs or exact event timestamps.
+export function exportAggregateCSV(metrics:Metrics,topEvents:SummaryEvent[],source:"synthetic"|"observed"){
+ const rows:(string|number)[][]=[
+  ["metric","dimension","count","rate","source"],
+  ["sessions","all",metrics.visits,"",source],
+  ["app_reach","all",metrics.appReach,metrics.appReachRate,source],
+  ["interaction_rate","all","",metrics.interactionRate,source],
+  ["avg_session_duration_seconds","completed_only",metrics.avgTimeSeconds,"",source],
+  ["total_events","all",metrics.eventCount,"",source],
+  ["motion_preference_changes","all",metrics.motionChanges,"",source],
+  ["benefits_opened","all",metrics.benefits,"",source],
+  ["demo_transfers","all",metrics.transfers,"",source],
+  ...metrics.sectionFunnel.map(s=>["section_reach",s.name,s.count,s.rate,source] as (string|number)[]),
+  ...metrics.daily.map(s=>["daily_sessions",s.date,s.started,s.rate,source] as (string|number)[]),
+  ...topEvents.map(e=>["event_group",e.event_name+(e.section?" / "+e.section:""),e.count,"",source] as (string|number)[])
+ ];
+ const quote=(v:string|number)=>'"'+String(v).replaceAll('"','""')+'"';
+ const csv=rows.map(row=>row.map(quote).join(",")).join("\r\n");
+ const uri=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+ const link=document.createElement("a");link.href=uri;link.download="signal-nova-aggregated.csv";
+ document.body.appendChild(link);link.click();link.remove();
+ window.setTimeout(()=>URL.revokeObjectURL(uri),1000);
 }
