@@ -145,13 +145,13 @@ do $$ begin
   execute 'drop policy if exists demo_insert_events on public.ux_events';
   execute 'revoke all on table public.ux_events from public, anon, authenticated';
  end if;
-end $;
-do $ begin
+end $$;
+do $$ begin
  if to_regclass('public.ux_events') is not null and exists(
   select 1 from pg_publication_tables where pubname='supabase_realtime'
    and schemaname='public' and tablename='ux_events'
  ) then alter publication supabase_realtime drop table public.ux_events; end if;
-end $;
+end $$;
 notify pgrst, 'reload schema';
 
 -- Verification (should show no anon SELECT/INSERT grants on nova_events):
