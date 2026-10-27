@@ -379,3 +379,49 @@ h1,h2,h3,p{margin-top:0}h1,h2,h3{letter-spacing:-.045em}h1,h2{font-family:Manrop
  }
  .motion-display .stat-card:hover,.nova-product-preview>a:hover{transform:none;box-shadow:none}
 }
+
+/* SIGNAL presentation mode: higher-energy motion without moving text endlessly. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@keyframes signal-stage-appear{from{opacity:0;transform:translateY(32px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes signal-aura-swell{0%{opacity:0;transform:scale(.75) rotate(-20deg)}55%{opacity:.86}100%{opacity:.57;transform:scale(1.13) rotate(8deg)}}
+@keyframes signal-card-shine{0%{transform:translateX(-160%) skewX(-24deg);opacity:0}18%{opacity:1}70%,100%{transform:translateX(210%) skewX(-24deg);opacity:0}}
+@keyframes signal-value-pop{0%{opacity:0;transform:translateY(18px) scale(.84);filter:blur(5px)}65%{opacity:1;transform:translateY(-2px) scale(1.07);filter:blur(0)}100%{transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes signal-icon-pop{0%{transform:rotate(-24deg) scale(.3);opacity:0}70%{transform:rotate(9deg) scale(1.14);opacity:1}100%{transform:none;opacity:1}}
+@keyframes signal-track-flow{from{background-position:120% center}to{background-position:-10% center}}
+@keyframes signal-hero-tint{0%{opacity:0;transform:translateY(40px)}100%{opacity:.55;transform:translateY(0)}}
+@keyframes signal-research-spark{0%{opacity:0;transform:rotate(-34deg) scale(.65)}100%{opacity:1;transform:rotate(0) scale(1)}}
+.signal-motion-canvas{position:relative;isolation:isolate}
+.signal-motion-canvas:before{content:"";position:absolute;z-index:-1;top:-185px;right:-155px;width:min(620px,65vw);height:500px;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse at center,#afe6b94a 0%,#cceadd20 42%,transparent 72%);animation:signal-hero-tint 1.6s ease-out both}
+.signal-motion-canvas .page-intro h1 em{display:inline-block}
+.motion-display .stat-card{animation-name:signal-stage-appear;animation-duration:.82s;animation-timing-function:cubic-bezier(.15,.82,.22,1)}
+.motion-display .stat-card:before{content:"";position:absolute;pointer-events:none;inset:-55% -44% auto auto;width:185px;height:185px;border-radius:50%;background:radial-gradient(circle,#ffffffdf 0%,#ffffff00 68%);animation:signal-aura-swell 1.6s ease-out both}
+.motion-display .stat-card:after{content:"";pointer-events:none;position:absolute;inset:0 auto 0 0;width:45%;background:linear-gradient(90deg,transparent,#ffffffac,transparent);animation:signal-card-shine 1.6s .22s both}
+.motion-display .stat-card:nth-child(2):after{animation-delay:.40s}
+.motion-display .stat-card:nth-child(3):after{animation-delay:.59s}
+.motion-display .stat-card:nth-child(4):after{animation-delay:.78s}
+.motion-display .stat-value>span[aria-hidden]{display:inline-block;font-variant-numeric:tabular-nums;animation:signal-value-pop .95s cubic-bezier(.15,.86,.2,1) both}
+.motion-display .stat-card:nth-child(1) .stat-value>span{animation-delay:.20s}
+.motion-display .stat-card:nth-child(2) .stat-value>span{animation-delay:.35s}
+.motion-display .stat-card:nth-child(3) .stat-value>span{animation-delay:.50s}
+.motion-display .stat-card:nth-child(4) .stat-value>span{animation-delay:.65s}
+.motion-display .stat-icon{animation:signal-icon-pop .72s cubic-bezier(.17,.82,.21,1) both}
+.motion-display .stat-card:nth-child(2) .stat-icon{animation-delay:.16s}
+.motion-display .stat-card:nth-child(3) .stat-icon{animation-delay:.27s}
+.motion-display .stat-card:nth-child(4) .stat-icon{animation-delay:.38s}
+.motion-display .trend-line{filter:drop-shadow(0 0 7px #75c5a388);stroke-width:4.1px}
+.motion-display .trend-area{filter:drop-shadow(0 -6px 12px #91cfad29)}
+.motion-display .funnel-bar{background-size:220% 100%;animation:signal-fill-reveal 1.3s cubic-bezier(.18,.78,.12,1) both,signal-track-flow 3.6s 1.7s linear infinite}
+.motion-display .event-item{animation-duration:.55s;animation-timing-function:cubic-bezier(.16,.82,.19,1)}
+.event-count{display:block;min-width:32px;text-align:center;padding:5px 8px;border-radius:9px;background:#e6f3ec;color:#35765b;font:800 14px Manrope,sans-serif}
+.research-hero-decoration{animation:signal-research-spark 1.15s .2s cubic-bezier(.2,.76,.15,1) both}
+.research-hero:after{content:"";position:absolute;right:-140px;bottom:-220px;width:440px;height:440px;background:radial-gradient(circle,#b3e7a32b 0%,transparent 67%);pointer-events:none;animation:signal-aura-swell 1.75s ease-out both}
+.claude-panel .claude-symbol{animation:signal-icon-pop .9s .35s both}
+@media(prefers-reduced-motion:reduce){
+ .signal-motion-canvas:before,.motion-display .stat-card:before,.motion-display .stat-card:after,
+ .motion-display .stat-value>span[aria-hidden],.motion-display .stat-icon,
+ .research-hero-decoration,.research-hero:after,.claude-panel .claude-symbol{
+  animation:none!important;opacity:1!important;transform:none!important;filter:none!important
+ }
+ .motion-display .funnel-bar{animation:none!important;background-position:0 0}
+ .motion-display .trend-line{filter:none}
+}
