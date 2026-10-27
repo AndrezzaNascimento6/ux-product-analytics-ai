@@ -123,7 +123,7 @@ end $$;
 -- Eliminate public access to individual session identifiers and timestamps.
 drop policy if exists nova_demo_read on public.nova_events;
 drop policy if exists nova_demo_insert on public.nova_events;
-revoke all on table public.nova_events from anon, authenticated;
+revoke all on table public.nova_events from public, anon, authenticated;
 revoke all on function public.nova_record_event(uuid,uuid,text,text,text,integer) from public, anon, authenticated;
 revoke all on function public.signal_public_summary() from public, anon, authenticated;
 grant usage on schema public to anon;
@@ -142,9 +142,16 @@ end $$;
 do $$ begin
  if to_regclass('public.ux_events') is not null then
   execute 'drop policy if exists demo_read_events on public.ux_events';
-  execute 'revoke select on table public.ux_events from anon, authenticated';
+  execute 'drop policy if exists demo_insert_events on public.ux_events';
+  execute 'revoke all on table public.ux_events from public, anon, authenticated';
  end if;
-end $$;
+end $;
+do $ begin
+ if to_regclass('public.ux_events') is not null and exists(
+  select 1 from pg_publication_tables where pubname='supabase_realtime'
+   and schemaname='public' and tablename='ux_events'
+ ) then alter publication supabase_realtime drop table public.ux_events; end if;
+end $;
 notify pgrst, 'reload schema';
 
 -- Verification (should show no anon SELECT/INSERT grants on nova_events):
