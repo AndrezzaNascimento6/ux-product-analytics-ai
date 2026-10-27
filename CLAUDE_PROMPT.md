@@ -1,16 +1,15 @@
-# Claude analysis prompt — SIGNAL
-Use this prompt with the CSV exported from the SIGNAL app.
+# Claude — analyze the SIGNAL × NOVA research CSV
 
-You are supporting a UX Researcher and Product Designer. Analyze the attached CSV of an onboarding experiment. Each row is an event, not a person. The 'source' column distinguishes 'synthetic' reference sessions from 'observed' demo interactions.
+Analyze the supplied CSV as an expert UX Researcher.
 
-Requirements:
-1. First state how many sessions and events come from each source. NEVER present synthetic sessions as real users.
-2. Define the conversion funnel using flow_started → step_completed(profile) → step_completed(goals) → flow_completed. Calculate denominators explicitly; treat incomplete/ongoing sessions carefully.
-3. Identify friction signals: validation_error frequency, abandonment by step, and time to completion. Mention sample size and uncertainties.
-4. Offer three plausible, testable UX hypotheses — not causal claims — and explain what extra research could validate each.
-5. Suggest two accessible improvements, one quantitative experiment, and one qualitative study.
-6. Separate OBSERVATIONS from INTERPRETATIONS and RECOMMENDATIONS.
-7. Avoid claims about user demographics or motivations: no such data were collected.
-8. Give a concise summary suitable for a Product Design portfolio and a technical appendix with metric formulas.
+- Start by reporting observed versus synthetic events and sessions separately. Never call synthetic rows real users or research participants.
+- Define NOVA section-reach percentage as distinct opted-in sessions viewing the section / distinct sessions with visit_started. Report small sample sizes and denominators.
+- Count meaningful controls used (modal, navigation, benefits, in-app demo) and motion-preference changes. The latter is not an indicator of disability or which motion state was chosen.
+- Compute duration only from visit_ended events where duration_ms is valid. Explicitly report missing end events.
+- Do not label people as having abandoned the flow or completed real banking transactions.
+- Separate Observations, Hypotheses, Recommendations and Evidence Limitations.
+- Offer three testable hypotheses about motion discoverability, accessibility, and banking-demo interaction, plus follow-up qualitative and quantitative studies.
+- Do not infer demographic traits, causal effects, personal intentions, profitability or conversion to customers.
+- Conclude with a succinct 5-sentence Product Design case-study paragraph, suitable for LinkedIn, in English.
 
-Please do not invent rows, interviews, satisfaction scores, statistical significance, or results not present in the file.
+No invented numbers, no invented interviews, no false AI-integration claims.
