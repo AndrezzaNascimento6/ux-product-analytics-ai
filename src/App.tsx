@@ -1,5 +1,5 @@
 import {useMemo,useState,type ReactNode} from "react";
-import {Activity,AlertCircle,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
+import {Activity,AlertCircle,ArrowRight,ArrowUpRight,BarChart3,BrainCircuit,Check,ChevronRight,Clock3,Copy,Database,Download,ExternalLink,Globe2,LayoutDashboard,Lightbulb,Menu,MousePointerClick,Radio,RefreshCcw,ShieldCheck,Sparkles,Target,TrendingUp,Users,WalletCards,X} from "lucide-react";
 import {computeMetrics,exportCSV,makeSyntheticEvents,useEventStream,SECTION_LABELS,EVENT_LABELS,type Metrics,type UXEvent} from "./analytics";
 type Page="overview"|"journey"|"research";type Source="combined"|"observed";
 const pct=(v:number)=>v.toFixed(1)+"%";const count=(v:number)=>new Intl.NumberFormat("en-US").format(v);
@@ -42,18 +42,20 @@ function Trend({daily}:{daily:Metrics["daily"]}){
  <svg className="trend-chart" viewBox="0 0 650 258" role="img" aria-label={daily.map(d=>d.label+": "+pct(d.rate)+" reached the app").join("; ")}>
  <defs><linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#9dd9b6" stopOpacity=".36"/><stop offset="1" stopColor="#9dd9b6" stopOpacity="0"/></linearGradient></defs>
  {[0,25,50,75,100].map(t=><g key={t}><line x1="46" x2="606" y1={y(t)} y2={y(t)} stroke="#e4eae7" strokeDasharray="5 6"/><text x="34" y={y(t)+4} textAnchor="end" fill="#788a8c" fontSize="11">{t}%</text></g>)}
- <path d={line+" L "+x(6)+" 200 L "+x(0)+" 200 Z"} fill="url(#trend-fill)"/><path d={line} fill="none" stroke="#2d866f" strokeWidth="3.2" strokeLinecap="round"/>
- {daily.map((d,i)=><g key={d.date}><circle cx={x(i)} cy={y(d.rate)} r="4" fill="#2d866f" stroke="white" strokeWidth="2"/><text x={x(i)} y="233" textAnchor="middle" fill="#7c8d88" fontSize="12">{d.label}</text></g>)}</svg></div>;
+ <path className="trend-area" d={line+" L "+x(6)+" 200 L "+x(0)+" 200 Z"} fill="url(#trend-fill)"/><path className="trend-line" pathLength="1" d={line} fill="none" stroke="#2d866f" strokeWidth="3.2" strokeLinecap="round"/>
+ {daily.map((d,i)=><g key={d.date}><circle className="trend-point" style={{animationDelay:(.7+i*.075)+"s"}} cx={x(i)} cy={y(d.rate)} r="4" fill="#2d866f" stroke="white" strokeWidth="2"/><text x={x(i)} y="233" textAnchor="middle" fill="#7c8d88" fontSize="12">{d.label}</text></g>)}</svg></div>;
 }
 function Overview({metrics,observed,source,setSource,status,connectionIssue,openNova,openResearch}:{metrics:Metrics;observed:UXEvent[];source:Source;setSource:(s:Source)=>void;status:string;connectionIssue:string|null;openNova:()=>void;openResearch:()=>void}){
  const baseline=source==="combined";
- return <>
+ const [motionCycle,setMotionCycle]=useState(0);
+ return <div className="signal-motion-canvas">
  <Intro label="NOVA / PRODUCT EXPERIENCE ANALYTICS" title="Understand the" accent="whole experience." subtitle="Measuring section discoverability, accessible motion preferences and fictional banking interactions."
  action={<button className="button-primary" onClick={openNova}>Explore NOVA <ArrowUpRight size={17}/></button>}/>
  <div className="notice-banner"><span className="notice-icon"><Globe2 size={19}/></span><div><strong>One product. Two perspectives.</strong><span>NOVA is the experience. SIGNAL helps us examine what happens inside it — with consent-first anonymous events.</span></div><button onClick={openNova}>View product <ArrowRight size={16}/></button></div>
  <div className="data-toolbar"><div className="data-toolbar-left"><span className="live-ring"><span/></span><span>{status==="connected"?"CLOUD REALTIME":status==="polling"?"CLOUD / AUTO REFRESH":status==="error"?"CLOUD CONNECTION ERROR":"LOCAL / SYNTHETIC PREVIEW"}</span><i/><span className="toolbar-muted">{status==="error"?"Check database permissions":status==="connecting"?"Connecting to Supabase":status==="demo"?"Cloud setup required":status==="polling"?"Checking for new data every 12s":"New consented events appear live"}</span></div>
-  <div className="segmented" role="group" aria-label="Data source"><button className={baseline?"selected":""} aria-pressed={baseline} onClick={()=>setSource("combined")}>All data</button><button className={!baseline?"selected":""} aria-pressed={!baseline} onClick={()=>setSource("observed")}>Observed only</button></div></div>
+  <div className="data-toolbar-actions"><button className="replay-motion-button" type="button" onClick={()=>setMotionCycle(value=>value+1)}><RefreshCcw size={15} aria-hidden="true"/> Replay motion</button><div className="segmented" role="group" aria-label="Data source"><button className={baseline?"selected":""} aria-pressed={baseline} onClick={()=>setSource("combined")}>All data</button><button className={!baseline?"selected":""} aria-pressed={!baseline} onClick={()=>setSource("observed")}>Observed only</button></div></div></div>
  {status==="error"&&<div className="connection-warning" role="status"><AlertCircle size={19}/><div><strong>Analytics connection needs attention</strong><p>{connectionIssue||"The database could not be reached. Check the Supabase project settings."}</p></div></div>}
+ <div className="motion-display" key={source+"-"+motionCycle}>
  <div className="stats-grid">
  <Stat label="NOVA sessions" value={count(metrics.visits)} detail="Consented or synthetic sessions" icon={<Users size={19}/>} color="blue"/>
  <Stat label="App section reach" value={pct(metrics.appReachRate)} detail="Sessions that reached mobile banking" icon={<WalletCards size={19}/>} color="mint"/>
@@ -70,7 +72,8 @@ function Overview({metrics,observed,source,setSource,status,connectionIssue,open
  <div className="event-list" role="log" aria-label="Latest NOVA events">{observed.slice(-5).reverse().map(e=><div className="event-item" key={e.id}><span className="event-mark"><Activity size={14}/></span><div><strong>{EVENT_LABELS[e.event_name]}</strong><span>{e.section?SECTION_LABELS[e.section]:"Session"} · {e.device_type}</span></div><time>{new Date(e.created_at).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</time></div>)}</div>}</Card>
  <Card className="insight-summary"><div className="insight-top"><span><Lightbulb size={19}/></span><span>RESEARCH SIGNAL</span></div><h2>Motion invites<br/><em>attention.</em><br/>Data invites <em>questions.</em></h2><p>{count(metrics.motionChanges)} motion-preference changes, {count(metrics.benefits)} benefit interactions and {count(metrics.transfers)} simulated transfers in the selected dataset.</p><button onClick={openResearch}>Explore research questions <ArrowUpRight size={18}/></button></Card></div>
  <div className="data-disclaimer"><ShieldCheck size={17}/><span>{baseline?"Includes 196 explicitly synthetic reference sessions.":"Only actual consented demo interactions, not recruited participants."} {status!=="connected"?"No cross-device tracking until Supabase is configured.": "Live events are stored in the demo Supabase database."} These are experience metrics, not banking transactions or sales.</span></div>
- </>;
+ </div>
+ </div>;
 }
 function Journey({goResearch}:{goResearch:()=>void}){
  return <><Intro label="EXPERIENCE LAB / NOVA PRIVATE" title="One product," accent="real interactions." subtitle="Instead of a second fictional onboarding, our research now uses the actual NOVA portfolio experience."

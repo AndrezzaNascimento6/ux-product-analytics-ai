@@ -303,3 +303,79 @@ h1,h2,h3,p{margin-top:0}h1,h2,h3{letter-spacing:-.045em}h1,h2{font-family:Manrop
  .funnel-row-header{font-size:12px}
  .trend-chart text{font-size:12px}
 }
+
+
+/* SIGNAL cinematic motion, driven exclusively by real rendered metrics.
+   Replay only animates presentation; it does NOT alter events or values. */
+@keyframes signal-rise{from{opacity:.15;transform:translate3d(0,21px,0)}to{opacity:1;transform:translateZ(0)}}
+@keyframes signal-soft-appear{from{opacity:.1;transform:translate3d(0,12px,0)}to{opacity:1;transform:translateZ(0)}}
+@keyframes signal-chart-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes signal-chart-area{from{opacity:0;transform:scaleY(.65)}to{opacity:1;transform:scaleY(1)}}
+@keyframes signal-fill-reveal{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes signal-point-bloom{from{opacity:0;transform:scale(.15)}to{opacity:1;transform:scale(1)}}
+@keyframes signal-orbit-appear{from{opacity:.2;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes signal-status-glow{0%,100%{box-shadow:0 0 0 3px #ddf2e3}50%{box-shadow:0 0 0 8px #d9f5e36b}}
+@keyframes signal-research-enter{from{opacity:.05;transform:translate3d(0,24px,0)}to{opacity:1;transform:translateZ(0)}}
+.signal-motion-canvas .page-intro{animation:signal-rise .65s cubic-bezier(.17,.78,.19,1) both}
+.signal-motion-canvas .notice-banner{animation:signal-soft-appear .65s .10s ease-out both}
+.signal-motion-canvas .data-toolbar{animation:signal-soft-appear .55s .18s ease-out both}
+.data-toolbar-actions{display:flex;gap:13px;align-items:center;justify-content:flex-end}
+.replay-motion-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1px solid #dae5db;border-radius:10px;padding:10px 13px;min-height:41px;white-space:nowrap;font-size:12px;font-weight:800;color:#326a51;box-shadow:0 2px 8px #1f44250b}
+.replay-motion-button:hover{background:#e7f2e8;color:#215942;border-color:#abcdb5}
+.replay-motion-button:focus-visible{outline:3px solid #457b5f;outline-offset:3px}
+.replay-motion-button svg{flex:none}
+.motion-display .stat-card{animation:signal-rise .68s cubic-bezier(.2,.86,.24,1) both;will-change:transform}
+.motion-display .stat-card:nth-child(1){animation-delay:.06s}
+.motion-display .stat-card:nth-child(2){animation-delay:.15s}
+.motion-display .stat-card:nth-child(3){animation-delay:.24s}
+.motion-display .stat-card:nth-child(4){animation-delay:.33s}
+.motion-display .surface{animation:signal-soft-appear .67s cubic-bezier(.2,.86,.24,1) both}
+.motion-display .analytics-grid:first-of-type .surface:nth-child(1){animation-delay:.32s}
+.motion-display .analytics-grid:first-of-type .surface:nth-child(2){animation-delay:.39s}
+.motion-display .bottom-grid .surface:nth-child(1){animation-delay:.5s}
+.motion-display .bottom-grid .surface:nth-child(2){animation-delay:.58s}
+.motion-display .funnel-bar{transform-origin:left center;animation:signal-fill-reveal 1.05s cubic-bezier(.18,.75,.18,1) both}
+.motion-display .funnel-row:nth-child(1) .funnel-bar{animation-delay:.39s}
+.motion-display .funnel-row:nth-child(2) .funnel-bar{animation-delay:.48s}
+.motion-display .funnel-row:nth-child(3) .funnel-bar{animation-delay:.57s}
+.motion-display .funnel-row:nth-child(4) .funnel-bar{animation-delay:.66s}
+.motion-display .funnel-row:nth-child(5) .funnel-bar{animation-delay:.75s}
+.motion-display .funnel-row:nth-child(6) .funnel-bar{animation-delay:.84s}
+.motion-display .funnel-row:nth-child(7) .funnel-bar{animation-delay:.93s}
+.motion-display .trend-line{stroke-dasharray:1;stroke-dashoffset:1;animation:signal-chart-draw 1.45s .35s cubic-bezier(.4,0,.16,1) forwards}
+.motion-display .trend-area{transform-box:fill-box;transform-origin:center bottom;animation:signal-chart-area 1.1s .4s ease-out both}
+.motion-display .trend-point{transform-box:fill-box;transform-origin:center center;animation:signal-point-bloom .32s ease-out both}
+.motion-display .event-item{animation:signal-soft-appear .4s ease-out both}
+.motion-display .event-item:nth-child(1){animation-delay:.52s}
+.motion-display .event-item:nth-child(2){animation-delay:.60s}
+.motion-display .event-item:nth-child(3){animation-delay:.68s}
+.motion-display .event-item:nth-child(4){animation-delay:.76s}
+.motion-display .event-item:nth-child(5){animation-delay:.84s}
+.motion-display .stat-card:hover{transform:translateY(-3px);box-shadow:0 16px 35px #294c351c;transition:transform .22s ease,box-shadow .22s ease}
+.motion-display .funnel-row:hover .funnel-track{background:#e1ece2;transition:background .2s}
+.signal-motion-canvas .live-ring span{animation:signal-status-glow 1.6s ease-in-out 2}
+.research-hero{animation:signal-research-enter .68s ease-out both}
+.research-hero-glow{animation:signal-orbit-appear 1.45s ease-out both;transform-origin:center}
+.hypothesis-card{animation:signal-research-enter .65s cubic-bezier(.15,.82,.25,1) both}
+.hypothesis-card:nth-child(2){animation-delay:.12s}
+.hypothesis-card:nth-child(3){animation-delay:.24s}
+.claude-panel{animation:signal-research-enter .68s .26s ease-out both}
+.nova-product-preview:before{animation:signal-orbit-appear 1.5s ease-out both}
+.nova-product-preview h2{animation:signal-rise .75s .15s ease-out both}
+.nova-product-preview>a:hover{transform:translateY(-3px);box-shadow:0 13px 32px #d7b78027;transition:transform .22s,box-shadow .22s}
+@media(max-width:690px){
+ .data-toolbar-actions{width:100%;justify-content:space-between;gap:8px}
+ .replay-motion-button{font-size:12px;padding:9px 10px}
+ .data-toolbar-actions .segmented{width:auto;flex:1}
+}
+@media(prefers-reduced-motion:reduce){
+ .signal-motion-canvas .page-intro,.signal-motion-canvas .notice-banner,.signal-motion-canvas .data-toolbar,
+ .motion-display .stat-card,.motion-display .surface,.motion-display .funnel-bar,
+ .motion-display .trend-line,.motion-display .trend-area,.motion-display .trend-point,
+ .motion-display .event-item,.signal-motion-canvas .live-ring span,
+ .research-hero,.research-hero-glow,.hypothesis-card,.claude-panel,
+ .nova-product-preview:before,.nova-product-preview h2{
+   animation:none!important;opacity:1!important;transform:none!important;stroke-dashoffset:0!important;
+ }
+ .motion-display .stat-card:hover,.nova-product-preview>a:hover{transform:none;box-shadow:none}
+}

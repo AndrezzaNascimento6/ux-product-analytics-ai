@@ -67,3 +67,33 @@ test("mobile KPI labels remain readable without horizontal scrolling",async({pag
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
  expect(overflow).toBeLessThanOrEqual(1);
 });
+
+
+test("animated dashboard has a replay control without changing measured values",async({page})=>{
+ await page.goto("/");
+ await page.getByRole("button",{name:"Observed only"}).click();
+ const value=await page.locator(".stat-card").first().locator(".stat-value").textContent();
+ const before=await page.locator(".motion-display").elementHandle();
+ await page.getByRole("button",{name:"Replay motion"}).click();
+ await expect(page.getByRole("button",{name:"Replay motion"})).toBeFocused();
+ await expect(page.locator(".stat-card").first().locator(".stat-value")).toHaveText(value||"0");
+ await expect(page.getByRole("button",{name:"Observed only"})).toHaveAttribute("aria-pressed","true");
+ expect(await before?.evaluate(element=>element.isConnected)).toBe(false);
+ await expect(page.locator(".trend-line")).toHaveAttribute("pathLength","1");
+ const motionName=await page.locator(".trend-line").evaluate(el=>getComputedStyle(el).animationName);
+ expect(motionName).toContain("signal-chart-draw");
+});
+
+test("reduced-motion preference disables all cinematic dashboard animations",async({page})=>{
+ await page.emulateMedia({reducedMotion:"reduce"});
+ await page.goto("/");
+ for(const selector of [".stat-card",".funnel-bar",".trend-line",".trend-point",".event-item",".page-intro"]){
+  if(await page.locator(selector).count()===0)continue;
+  const name=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).animationName);
+  expect(name,selector).toBe("none");
+ }
+ await expect(page.getByRole("button",{name:"Replay motion"})).toBeVisible();
+ const value=await page.locator(".stat-card").first().locator(".stat-value").textContent();
+ await page.getByRole("button",{name:"Replay motion"}).click();
+ await expect(page.locator(".stat-card").first().locator(".stat-value")).toHaveText(value||"196");
+});
