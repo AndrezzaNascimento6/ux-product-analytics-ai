@@ -1,5 +1,7 @@
 # SIGNAL × NOVA — Privacy-aware Product Intelligence Lab
 
+> This is an independent educational design experiment. NOVA is a fictional banking concept. No real financial transactions are performed.
+
 [**NOVA**](https://wandr-3d-travel-experience.vercel.app/) is a fictional premium banking interaction experience. [**SIGNAL**](https://signal-nova-analytics.vercel.app/) is an educational analytics dashboard illustrating how consent, UX motion, product instrumentation and human-led AI analysis can work together.
 
 **Not a bank, not a recruited participant study, not a production-grade analytics service.**

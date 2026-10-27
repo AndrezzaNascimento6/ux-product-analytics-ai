@@ -438,3 +438,7 @@ h1,h2,h3,p{margin-top:0}h1,h2,h3{letter-spacing:-.045em}h1,h2{font-family:Manrop
  .data-toolbar-actions .segmented{flex:1 1 100%;width:100%;min-width:0}
  .data-toolbar-actions .segmented button{padding:10px 5px;font-size:11px;min-width:0}
 }
+
+/* Concise portfolio disclaimer, readable at desktop and mobile widths. */
+.main-footer{flex-wrap:wrap}
+.main-footer .project-disclaimer{flex:1 1 100%;margin:4px 0 0;color:#536a66;font-size:12px;font-weight:500;letter-spacing:0;line-height:1.6}
