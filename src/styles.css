@@ -425,3 +425,5 @@ h1,h2,h3,p{margin-top:0}h1,h2,h3{letter-spacing:-.045em}h1,h2{font-family:Manrop
  .motion-display .funnel-bar{animation:none!important;background-position:0 0}
  .motion-display .trend-line{filter:none}
 }
+
+.signal-motion-canvas{overflow-x:clip}
